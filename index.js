@@ -10,6 +10,7 @@ MongoClient.connect(connectionString, {autoSelectFamily: false}).then(client => 
         console.log("Connected to Database");
         const db = client.db('company');
         const employeesCollection = db.collection('employees');
+        const productsCollection = db.collection('products');
 
         app.set('view engine', 'ejs');
         app.use(bodyParser.urlencoded({ extended: true}));
@@ -56,6 +57,60 @@ MongoClient.connect(connectionString, {autoSelectFamily: false}).then(client => 
                     .catch(error => console.error(error))
             })
         })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        app.get('/products', (req, res) => {
+            productsCollection.find().toArray().then(productsData => {
+                res.render('products.ejs', { products: productsData })
+            })
+            .catch(error => console.error(error));
+        })
+
+        app.post('/product', (req, res) => {
+            productsCollection.insertOne(req.body).then(result => {
+                res.redirect('/products')
+            })
+            .catch(error => console.error(error));
+        })
+
+        app.get('/product/:id', (req, res) => {
+            productsCollection.findOne({productNumber: req.params.id}).then(productsRecord => {
+                res.render('product.ejs', {product: productsRecord});
+            })
+        })
+
+        app.post('/editProduct/:id', (req, res) => {
+            productsCollection.findOneAndUpdate({productNumber: req.params.id}, {$set: req.body}, {returnDocument: "after", returnNewDocument: true})
+            .then(updatedGuy => {
+                res.render('product.ejs', {product: updatedGuy});
+            })
+        })
+
+        app.post('/deleteProduct/:id', (req, res) => {
+            productsCollection.findOneAndDelete({productNumber: req.params.id}).then(result => {
+                productsCollection.find().toArray().then(
+                    productsData => {
+                        res.render('products.ejs', {products: productsData});
+                    })
+                    .catch(error => console.error(error))
+            })
+        })
+
+
+
 
 
 
